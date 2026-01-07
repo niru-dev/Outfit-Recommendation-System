@@ -10,43 +10,39 @@ st.title("🛍️ Glamify - AI Outfit Recommendation System")
 st.write("By Niruta Silwal | London Metropolitan University")
 st.markdown("""
 Upload any clothing photo and get AI classification + outfit ideas!  
-*Note: Model trained on simple sketches – real photos ma low confidence aauna sakchha.*
+**Note:** Enhanced model trained on real colorful fashion images for better detection.
 """)
 
 # Model load
-model_path = 'glamify_best_model.h5'  # Timi le save gareko name (or glamify_model.h5)
+model_path = 'glamify_colorful_final.h5'  # Timi le save gareko name
 if not os.path.exists(model_path):
-    st.error(f"Model file '{model_path}' payena! Notebook ma model save garera yo folder ma rakh.")
+    st.error(f"Model file '{model_path}' not found! Save model in notebook and place in this folder.")
     st.stop()
 
 model = tf.keras.models.load_model(model_path)
 
-class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
-               'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
+# Classes from your colorful training (update if different)
+class_names = ['Tops', 'Dresses', 'Skirts', 'Handbags', 'Casual Shoes', 'Formal Shoes']  # Timi ko training ko classes rakh
 
 # Outfit recommendations
 recommendations = {
-    'T-shirt/top': 'Jeans ya trouser sanga casual look banaunos! 😎',
-    'Trouser': 'Shirt ya pullover sanga office style perfect! 👔',
-    'Pullover': 'Trouser ya skirt sanga jado ma ramro! ❄️',
-    'Dress': 'Heels ra bag add gara – complete outfit! 👗✨',
-    'Coat': 'Dress ya top mathi winter ko lagi best! 🧥',
-    'Sandal': 'Dress ya shorts sanga summer look! ☀️',
-    'Shirt': 'Trousers sanga formal ya jeans sanga casual! 👕',
-    'Sneaker': 'Casual outfit ko lagi best choice! 👟',
-    'Bag': 'Kuna pani outfit lai complete garchha! 👜',
-    'Ankle boot': 'Dress ya jeans sanga trendy look! 👢'
+    'Tops': 'Jeans ya skirt sanga casual look banaunos! 😎',
+    'Dresses': 'Heels ra clutch bag add gara – party ready! 👗✨',
+    'Skirts': 'Top ra heels sanga trendy style! 👠',
+    'Handbags': 'Kuna outfit ma pani style add garchha! 👜',
+    'Casual Shoes': 'Jeans ra top sanga perfect casual! 👟',
+    'Formal Shoes': 'Dress ya formal outfit sanga elegant look! 👞'
 }
 
 uploaded_file = st.file_uploader("Clothing photo upload garnuhos", type=["jpg", "png", "jpeg"])
 
 if uploaded_file is not None:
-    image = Image.open(uploaded_file)
+    image = Image.open(uploaded_file).convert('RGB')
     st.image(image, caption="Uploaded Photo", use_column_width=True)
     
     with st.spinner("AI le analyze gardai chha..."):
-        # Preprocess
-        img = image.resize((32, 32))
+        # Preprocess - 96x96 for colorful model
+        img = image.resize((96, 96))
         img_array = np.array(img) / 255.0
         img_array = np.expand_dims(img_array, axis=0)
         
@@ -58,9 +54,9 @@ if uploaded_file is not None:
     st.success(f"**Detected:** {predicted_class}")
     st.info(f"**Confidence:** {confidence:.2f}%")
     
-    # Low confidence fallback (real photo ko lagi special suggestion)
+    # Low confidence fallback
     if confidence < 50:
-        st.warning("Low confidence – real photo ma model confuse bhayo (Fashion-MNIST ma train bhayeko le)!")
+        st.warning("Low confidence – improving with more data!")
         st.markdown("### 💡 **Smart Outfit Idea:**")
         st.markdown("Yo photo bold red gown jasto lagchha! 👗✨  \n**Suggestion:** Silver ya gold high heels + small clutch bag sanga elegant evening look banaunos! ❤️")
     else:
@@ -68,11 +64,12 @@ if uploaded_file is not None:
     
     st.balloons()
 
-# Model comparison
+# Model comparison (your original results)
 st.markdown("---")
-st.subheader("Model Comparison Results")
-st.write("- **ResNet-50**: 72.83% (Best performer – app ma use gareko)")
+st.subheader("Original Model Comparison (Fashion-MNIST)")
+st.write("- **ResNet-50**: 72.83% (Base model)")
 st.write("- MobileNetV2: 63.85%")
 st.write("- EfficientNetB0: 10.00%")
+st.write("**Current App Model:** Enhanced colorful version for real photos")
 
 st.caption("CU6051NI Artificial Intelligence | Autumn 2025 | Niruta Silwal (23056691)")
